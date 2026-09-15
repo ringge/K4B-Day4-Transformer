@@ -32,10 +32,34 @@
 
 Sao chép mục này cho từng thành viên.
 
-### Họ và tên — MSSV
+### Trần Kim Phương — 2A202602565
+
+- Phần việc và file/commit/PR: Điều phối công việc giữa các thành viên, thực hiện cải tiến prompts và tools cho v1 (commit `fbb4dc8`), cải tiến v3 (commit `ac5da4e`)
+- Quyết định, khó khăn và cách xử lý: Trong quá trình cải tiến prompts và tools có phát sinh các trường hợp regression, ví dụ khi cải tiến v3, ban đầu có phát sinh 1 trường hợp regression, tôi đã xử lý bằng cách xem lại các phần cải tiến và điều chỉnh để xử lý regression.
+- Điều đã học: các lỗi agent thường gặp như routing error, arguments error, multi-turn context loss, hiểu rõ về tool json schema, thiết lập các cơ chế xin xác nhận của người dùng khi cần thiết
+- AI/công cụ đã dùng và cách kiểm tra: Codex
+- Thời điểm đã tự nộp URL repo chung trên VLearn: 21h00 Sep 15 2026
+
+### Nguyễn Minh Thái — 2A202602726
 
 - Phần việc và file/commit/PR:
+  - Xử lý và rà soát báo cáo trong [starter_v0/artifacts/REPORT.md](starter_v0/artifacts/REPORT.md) và đối chiếu với [starter_v0/agent.py](starter_v0/agent.py), [starter_v0/artifacts/tools.yaml](starter_v0/artifacts/tools.yaml), [starter_v0/data/eval_group.json](starter_v0/data/eval_group.json), transcript [starter_v0/transcripts/v3_openrouter_20260915T202732739240.transcript.json](starter_v0/transcripts/v3_openrouter_20260915T202732739240.transcript.json).
 - Quyết định, khó khăn và cách xử lý:
+  - Tập trung vào các rule an toàn: không đoán asset/employee ID, không tạo ticket khi chưa xác nhận, giữ agent trong phạm vi IT.
+  - Khó khăn là đồng bộ dữ liệu test với mô tả tool và transcript; cách xử lý là đối chiếu từng case với schema, rồi kiểm chứng bằng trace thực tế trước khi viết báo cáo.
 - Điều đã học:
-- AI/công cụ đã dùng và cách kiểm tra:
-- Thời điểm đã tự nộp URL repo chung trên VLearn:
+  - Cần xem `tool_calls`, `tool_results` thay vì chỉ tin điểm tự động.
+  - Prompt và tool schema quyết định rất lớn đến độ chính xác và an toàn của agent.
+  - AI/công cụ đã dùng và cách kiểm tra:
+  - GitHub Copilot + VS Code; kiểm tra bằng cách đối chiếu report với transcript và tool definition.
+- Thời điểm đã tự nộp URL repo chung trên VLearn: 21:00.
+
+### Trần Gia Thành — 2A202602626
+
+- Phần việc và file/commit/PR: Cải tiến `tools.yaml` và phần `Identifiers`, `Environments` của `system_prompt.md` trong vòng lặp v2. Thực thi đánh giá kiểm thử v2 (đạt 26/30) và chạy bộ test mở rộng adversarial cùng group suite trên OpenRouter. Commits chính: `4066277`, `228dd59`, `2181933`.
+- Quyết định, khó khăn và cách xử lý:
+    + Khó khăn: Agent hay nhầm lẫn giữa việc tra cứu thông tin chung và kiểm tra thiết bị cụ thể khi người dùng chỉ cung cấp tên phòng ban hoặc đại từ.
+    + Cách xử lý: Bổ sung ràng buộc trong mô tả `lookup_user` và `inspect_device` để ép buộc agent gọi `clarify` khi thiếu ID hợp lệ.
+- Điều đã học: Nắm vững kỹ thuật Prompt Engineering, cách kiểm soát tham số và enum trong Tool Schema để LLM trích xuất đúng argument.
+- AI/công cụ đã dùng và cách kiểm tra: Sử dụng OpenRouter API, Python CLI test scripts, Git CLI, Antigravity IDE.
+- Thời điểm đã tự nộp URL repo chung trên VLearn: 15/09/2026 21:00
