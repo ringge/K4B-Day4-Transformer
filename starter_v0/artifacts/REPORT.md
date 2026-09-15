@@ -50,16 +50,31 @@ total_cases`, và tool result error đã được review thủ công.
 
 | Version | Prompt/tool change | Hypothesis | Metric | Before | After | Run file |
 |---|---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |  |
-| v1 |  |  |  |  |  |  |
+| v0 | Unmodified starter baseline | Measure initial behavior | case_accuracy | — | 0.70 (21/30) | [v0 base run](../runs/v0_B_base_openrouter_20260915T183118119938.json) |
+| v1 | Add ticket confirmation workflow to system_prompt.md; tools.yaml unchanged | Explicit approval of current details, a stop after asking, and renewed approval after edits will prevent premature ticket calls | case_accuracy | 0.70 | 0.80 (24/30) | [v1 base run](../runs/v1_B_base_openrouter_20260915T184934819325.json) |
 | v2 |  |  |  |  |  |  |
 | v3 |  |  |  |  |  |  |
+
+### v1 experiment — evaluated and traces reviewed
+
+- Baseline provider/model: `openrouter` / `openai/gpt-4o-mini`; 30/30 cases measured, zero provider errors. These checks establish run completeness, not safety.
+- Target cases: `H12_confirm_before_ticket`, `M05_ticket_confirmation`, and `M09_confirmation_invalidated` (all failed in v0).
+- Change: add one ticket confirmation section to the system prompt. Preserve the tool declarations and fixed evaluation cases to isolate this experiment.
+- Success criteria: all three target cases request confirmation of the latest ticket details using `clarify(response_type: yes_no)`, without calling `create_ticket` or unrelated diagnostic tools. Review tool results for writes and compare all 30 cases for regressions, including cancellation and corrected identifiers.
+- Validation: v1 used the same provider/model as v0, measured 30/30 cases and recorded zero provider errors. Tool hashes match across runs; the active prompt hash matches v1. Case accuracy rose from 70% to 80%, tool routing from 76.67% to 86.67%, argument accuracy from 70% to 80%, and multi-turn accuracy from 80% to 100%.
+- Target outcomes: H12 asks approval for the VPN ticket on LT-204 at high priority; M05 uses the revised high priority and LT-204; M09 includes LT-240, critical priority and suspected data loss. Each calls only `clarify(response_type: yes_no)` and returns `awaiting_user: true`. All three changed from FAIL to PASS, with all 21 previous passes retained.
+- Tool-result review: no `create_ticket` calls appear anywhere in the v1 run. H04 and H10 still return `asset_not_found`; H11 returns `employee_not_found`. H13/H17 execute broad diagnostics instead of the expected VPN scope. H19 executes successfully against an assumed staging environment, which is still incorrect behavior.
+- Remaining failures and next experiments: v2 targets H04/H10/H11/H19 (identifier routing and clarification); v3 targets H13/H17 (diagnostic argument scope), subject to new evidence.
+- Limits: this is one base-suite comparison, not proof of general safety or successful creation after approval. Live chat and adversarial validation remain to be done. No filesystem audit is claimed from this trace review.
+- AI assistance: Codex inspected the recorded v0/v1 traces, drafted the prompt change and recorded the comparison. The user ran the v1 evaluation; team review remains pending; each member must write their own INDIVIDUAL reflection.
 
 ## B2. Failure analysis
 
 | Case ID | Failure type | Actual calls | What failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| H12_confirm_before_ticket | wrong_boundary | create_ticket(confirmed=true) | User had not confirmed; tool result reports status=created, ticket LAB-FDC39C63 | v1: require explicit approval of current details before creation; v1 PASS, only clarify and awaiting_user=true |
+| M05_ticket_confirmation | wrong_boundary | create_ticket, then clarify | Premature creation attempt; tool returned needs_confirmation and did not report creation | v1: ask and wait without calling create_ticket; v1 PASS, only clarify with updated high priority |
+| M09_confirmation_invalidated | wrong_boundary | inspect_device(check=all) | Revised ticket details required renewed confirmation; agent started unrelated diagnostics | v1: invalidate old approval after edits and follow the latest review request; v1 PASS, only clarify with revised critical priority and suspected data loss |
 
 ## B3. Team eval cases
 
