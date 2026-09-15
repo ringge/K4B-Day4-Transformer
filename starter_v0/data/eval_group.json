@@ -3,5 +3,126 @@
   "dataset_role": "group",
   "description": "Template intentionally left empty. The team must write exactly 10 original IT helpdesk cases: 5 single-turn query cases and 5 multi-turn turns cases.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+  {
+    "id": "S21_weather_out_of_scope",
+    "phase": "B",
+    "suite": "base",
+    "query": "Bạn có thể chỉ tôi cách nấu món phở bò truyền thống được không?",
+    "failure_type": "out_of_scope",
+    "expect": {"no_tool": true, "behavior": "refuse"},
+    "metadata": {"skill": "out_of_scope_general", "difficulty": "easy", "what_it_tests": "Kiểm tra khả năng từ chối các câu hỏi không liên quan đến IT Helpdesk."}
+  },
+  {
+    "id": "S22_inspect_device_wrong_tool",
+    "phase": "B",
+    "suite": "base",
+    "query": "Kiểm tra tình trạng mạng của máy tính mã LT-2024 giúp tôi xem có rớt mạng không.",
+    "failure_type": "wrong_tool",
+    "expect": {"tool_calls": [{"name": "inspect_device", "args": {"asset_id": "LT-2024", "check": "network"}}]},
+    "metadata": {"skill": "tool_disambiguation", "difficulty": "medium", "what_it_tests": "Người dùng hỏi về 'tình trạng mạng' dễ lừa model gọi check_service_status, nhưng thực tế phải gọi inspect_device vì đích đến là máy tính."}
+  },
+  {
+    "id": "S23_lookup_user_missing_info",
+    "phase": "B",
+    "suite": "base",
+    "query": "Tra cứu thông tin liên lạc của nhân viên tên Nguyễn Văn A phòng kinh doanh giúp tôi.",
+    "failure_type": "missing_info",
+    "expect": {"no_tool": true, "behavior": "ask_clarification"},
+    "metadata": {"skill": "detect_missing_entity", "difficulty": "easy", "what_it_tests": "Tool lookup_user yêu cầu bắt buộc employee_id, nhưng user mới chỉ cung cấp tên."}
+  },
+  {
+    "id": "S24_check_and_ticket_wrong_boundary",
+    "phase": "B",
+    "suite": "base",
+    "query": "Kiểm tra trạng thái dịch vụ vpn và tạo luôn một ticket báo lỗi không kết nối được vpn nhé.",
+    "failure_type": "wrong_boundary",
+    "expect": {
+      "tool_calls": [
+        {"name": "check_service_status", "args": {"service": "vpn"}},
+        {"name": "create_ticket", "args": {"summary": "Không kết nối được vpn"}}
+      ]
+    },
+    "metadata": {"skill": "multi_intent_separation", "difficulty": "hard", "what_it_tests": "Cùng lúc gọi hai tool khác nhau (check_service_status và create_ticket). Model dễ gộp sai hoặc quên gọi một tool."}
+  },
+  {
+    "id": "S25_wifi_fixed_unnecessary_tool",
+    "phase": "B",
+    "suite": "base",
+    "query": "Hôm qua tôi định báo lỗi wifi phòng họp, nhưng nay wifi đã dùng bình thường rồi, cảm ơn IT nhé không cần tạo ticket nữa đâu.",
+    "failure_type": "unnecessary_tool",
+    "expect": {"no_tool": true, "behavior": "chitchat"},
+    "metadata": {"skill": "detect_resolved_issue", "difficulty": "medium", "what_it_tests": "Tránh gọi tool create_ticket hoặc check_service_status khi người dùng chỉ đang cập nhật tình hình (đã giải quyết)."}
+  },
+  {
+    "id": "M21_flight_ticket_out_of_scope",
+    "phase": "B",
+    "suite": "base",
+    "turns": [
+      {"role": "user", "content": "Chào bạn, hệ thống email dạo này hay bị chậm."},
+      {"role": "user", "content": "Nhưng mà thôi, tôi dùng hòm thư cá nhân cũng được, không ảnh hưởng lắm."},
+      {"role": "user", "content": "Tiện thể bạn cho tôi hỏi giá vé máy bay đi Đà Lạt tháng này rẻ nhất là bao nhiêu?"}
+    ],
+    "failure_type": "out_of_scope",
+    "expect": {"no_tool": true, "behavior": "refuse"},
+    "metadata": {"skill": "multiturn_out_of_scope", "difficulty": "medium", "what_it_tests": "Chuyển ngữ cảnh từ IT sang câu hỏi du lịch, model phải biết từ chối khéo."}
+  },
+  {
+    "id": "M22_inspect_device_wrong_arg_value",
+    "phase": "B",
+    "suite": "base",
+    "turns": [
+      {"role": "user", "content": "Kiểm tra lỗi phần cứng cho máy tính của tôi."},
+      {"role": "user", "content": "Mã máy là PC-111."},
+      {"role": "user", "content": "À khoan, nhầm, mã đúng của máy tôi là PC-999 nhé."}
+    ],
+    "failure_type": "wrong_arg_value",
+    "expect": {"tool_calls": [{"name": "inspect_device", "args": {"asset_id": "PC-999", "check": "hardware"}}]},
+    "metadata": {"skill": "multiturn_user_correction", "difficulty": "hard", "what_it_tests": "Kiểm tra xem model có lấy đúng asset_id mới (PC-999) thay vì cái cũ (PC-111) hay không."}
+  },
+  {
+    "id": "M23_kb_and_service_wrong_boundary",
+    "phase": "B",
+    "suite": "base",
+    "turns": [
+      {"role": "user", "content": "Tôi đang không in được tài liệu."},
+      {"role": "user", "content": "Không rõ là do máy in của tôi hay do dịch vụ in của công ty sập."},
+      {"role": "user", "content": "Tìm hướng dẫn sửa lỗi máy in trong KB và kiểm tra luôn trạng thái dịch vụ printing cho tôi đi."}
+    ],
+    "failure_type": "wrong_boundary",
+    "expect": {
+      "tool_calls": [
+        {"name": "search_kb", "args": {"query": "sửa lỗi máy in", "category": "printing"}},
+        {"name": "check_service_status", "args": {"service": "printing"}}
+      ]
+    },
+    "metadata": {"skill": "parallel_tool_calls_multiturn", "difficulty": "hard", "what_it_tests": "Xử lý đa ý định ở lượt cuối: vừa tìm tài liệu (search_kb) vừa kiểm tra hệ thống (check_service_status)."}
+  },
+  {
+    "id": "M24_create_ticket_missing_info",
+    "phase": "B",
+    "suite": "base",
+    "turns": [
+      {"role": "user", "content": "Tôi gặp sự cố rồi."},
+      {"role": "user", "content": "Máy tính tự nhiên bị tắt ngóm không bật lên được nữa."},
+      {"role": "user", "content": "Tạo ticket ưu tiên high cho máy tính này đi, tôi cần sửa gấp."}
+    ],
+    "failure_type": "missing_info",
+    "expect": {"no_tool": true, "behavior": "ask_clarification"},
+    "metadata": {"skill": "multiturn_missing_info", "difficulty": "medium", "what_it_tests": "Đã có thông tin lỗi, có priority, nhưng đang thiếu mã thiết bị (asset_id). Model không được gọi tool."}
+  },
+  {
+    "id": "M25_vpn_maintainance_unnecessary_tool",
+    "phase": "B",
+    "suite": "base",
+    "turns": [
+      {"role": "user", "content": "Kiểm tra xem dịch vụ VPN có sập không?"},
+      {"role": "user", "content": "Mọi người xung quanh đều không vào được."},
+      {"role": "user", "content": "À thôi, sếp tôi vừa bảo có thông báo bảo trì định kỳ, không cần kiểm tra nữa đâu."}
+    ],
+    "failure_type": "unnecessary_tool",
+    "expect": {"no_tool": true, "behavior": "chitchat"},
+    "metadata": {"skill": "multiturn_context_switch", "difficulty": "hard", "what_it_tests": "Người dùng thay đổi quyết định, hủy bỏ yêu cầu gọi check_service_status ở turn cuối."}
+  }
+]
 }
