@@ -7,10 +7,13 @@
 
 ## Team
 
-- Team:
+- Team: Transformer
 - Thành viên và INDIVIDUAL: [TEAM.md](../../TEAM.md)
-- Members:
-- Provider/model:
+- Members: 
+  Trần Kim Phương - 2A202602565
+  Nguyễn Minh Thái - 2A202602726
+  Trần Gia Thành - 2A202602626
+- Provider/model: gpt-4o-mini - OpenRouter
 
 # PHẦN A — Giới thiệu agent
 
