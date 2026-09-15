@@ -10,16 +10,16 @@
 - URL repo, nhánh nộp, commit chốt: 
     + URL repo: https://github.com/ringge/K4B-Day4-Transformer
     + nhánh: `main`
-    + commit chốt: 
+    + commit chốt: `8ac04c7`
 - Deadline áp dụng và link thông báo đổi hạn nếu có:
 
 ## Thành viên
 
 | Họ và tên | MSSV | GitHub | Vai trò và công việc | File/commit/PR |
 |---|---|---|---|---|
-| Trần Kim Phương | 2A202602565 | [ringge](https://github.com/ringge/) | Team lead – Điều phối nhóm, tổng hợp kết quả và hoàn thiện báo cáo | [Điền file/commit/PR] |
-| Trần Gia Thành | 2A202602626 | [gtee2004](https://github.com/gtee2004/) | Teammate – Thực hiện phần việc được phân công, chạy kiểm thử và cập nhật kết quả | [Điền file/commit/PR] |
-| Nguyễn Minh Thái | 2A202602726 | [aoi36](https://github.com/aoi36) | Teammate – Thực hiện phần việc được phân công và đóng góp vào quá trình đánh giá agent | [Điền file/commit/PR] |
+| Trần Kim Phương | 2A202602565 | [ringge](https://github.com/ringge/) | Team lead – Điều phối nhóm, tổng hợp kết quả và hoàn thiện báo cáo | `fbb4dc8`, `ac5da4e`, `ab0ddb7` (`system_prompt.md`, `tools.yaml`, `REPORT.md`) |
+| Trần Gia Thành | 2A202602626 | [gtee2004](https://github.com/gtee2004/) | Teammate – Thực hiện phần việc được phân công, chạy kiểm thử và cập nhật kết quả | `4066277`, `228dd59`, `2181933` (`tools.yaml`, `runs/v2`, `runs/v3 adversarial & group`) |
+| Nguyễn Minh Thái | 2A202602726 | [aoi36](https://github.com/aoi36) | Teammate – Thực hiện phần việc được phân công và đóng góp vào quá trình đánh giá agent | `46cd610`, `7d6b556`, `96f58e6`, `a30310e` (`eval_group.json`, `app.py`, `REPORT.md`) |
 
 ## Nhận xét chung
 

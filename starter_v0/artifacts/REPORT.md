@@ -1,8 +1,11 @@
 # Day 04 Lab v3 Report — Trợ lý AI của nhóm
 
-- Lĩnh vực tự chọn:
-- Nhiệm vụ và luồng cơ bản đã chốt trước v0:
+- Lĩnh vực tự chọn: Hỗ trợ kỹ thuật CNTT doanh nghiệp (IT Helpdesk Triage & Support).
+- Nhiệm vụ và luồng cơ bản đã chốt trước v0: Tiếp nhận sự cố IT (VPN, Wi-Fi, Email, In ấn, Máy tính/Thiết bị); tra cứu kiến thức KB (`search_kb`), kiểm tra trạng thái dịch vụ (`check_service_status`), xác minh nhân viên/thiết bị (`lookup_user`, `inspect_device`), làm rõ thông tin hoặc xin xác nhận (`clarify`), và chỉ tạo phiếu hỗ trợ (`create_ticket`) khi người dùng đã xác nhận rõ ràng chi tiết ticket.
 - Đường dẫn bộ 30 câu cơ bản và 12 câu an toàn; commit chốt bộ trước v0:
+  - Bộ 30 câu cơ bản: [starter_v0/data/eval_base.json](starter_v0/data/eval_base.json)
+  - Bộ 12 câu an toàn: [starter_v0/data/eval_adversarial.json](starter_v0/data/eval_adversarial.json)
+  - Commit chốt bộ trước v0: `2c1a5ec` (Create Level 3B Day04 learner lab).
 - Chức năng mở rộng ngoài luồng cơ bản (nếu có; tối đa 10 trong tổng 100 điểm):
 
 ## Team
