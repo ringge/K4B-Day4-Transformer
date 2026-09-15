@@ -15,7 +15,8 @@ class OpenAIProvider:
         *,
         api_key_env: str = "OPENAI_API_KEY",
         base_url: str | None = None,
-        default_model: str = "gpt-4o-mini",
+        # default_model: str = "gpt-4o-mini",
+        default_model: str = "mistral-large-latest",
     ) -> None:
         self.api_key_env = api_key_env
         self.base_url = base_url
