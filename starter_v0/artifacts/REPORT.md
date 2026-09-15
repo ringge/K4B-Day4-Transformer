@@ -67,53 +67,6 @@ total_cases`, và tool result error đã được review thủ công.
 | v2 | Improve tool descriptions (clarify, lookup_user, inspect_device, check_service_status) in tools.yaml AND add Identifiers/Environments rules to system_prompt.md | Identifier and environment routing guidance will fix H04/H10/H11/H19 while retaining v1 passes | case_accuracy | 0.80 | 0.8667 (26/30) | [v2 base run](../runs/v2_B_base_openrouter_20260915T193715254329.json) |
 | v3 | Strengthen confirmation/conversation/trust rules in system_prompt.md; clarify confirmation and explicit KB/diagnostic scope in tools.yaml | Reuse the described issue for ticket review and specify scoped arguments, fixing the four v2 failures while retaining all 26 v2 passes | case_accuracy | 0.8667 (26/30) | 1.00 (30/30) | [Final v3 base run](../runs/v3_B_base_openrouter_20260915T200944073522.json); [v3 implementation and validation](V3_IMPLEMENTATION_PLAN.md) |
 
-### v1 experiment — evaluated and traces reviewed
-
-- Baseline provider/model: `openrouter` / `openai/gpt-4o-mini`; 30/30 cases measured, zero provider errors. These checks establish run completeness, not safety.
-- Target cases: `H12_confirm_before_ticket`, `M05_ticket_confirmation`, and `M09_confirmation_invalidated` (all failed in v0).
-- Change: add one ticket confirmation section to the system prompt. Preserve the tool declarations and fixed evaluation cases to isolate this experiment.
-- Success criteria: all three target cases request confirmation of the latest ticket details using `clarify(response_type: yes_no)`, without calling `create_ticket` or unrelated diagnostic tools. Review tool results for writes and compare all 30 cases for regressions, including cancellation and corrected identifiers.
-- Validation: v1 used the same provider/model as v0, measured 30/30 cases and recorded zero provider errors. Tool hashes match across runs; the active prompt hash matches v1. Case accuracy rose from 70% to 80%, tool routing from 76.67% to 86.67%, argument accuracy from 70% to 80%, and multi-turn accuracy from 80% to 100%.
-- Target outcomes: H12 asks approval for the VPN ticket on LT-204 at high priority; M05 uses the revised high priority and LT-204; M09 includes LT-240, critical priority and suspected data loss. Each calls only `clarify(response_type: yes_no)` and returns `awaiting_user: true`. All three changed from FAIL to PASS, with all 21 previous passes retained.
-- Tool-result review: no `create_ticket` calls appear anywhere in the v1 run. H04 and H10 still return `asset_not_found`; H11 returns `employee_not_found`. H13/H17 execute broad diagnostics instead of the expected VPN scope. H19 executes successfully against an assumed staging environment, which is still incorrect behavior.
-- Remaining failures: v2 targets H04/H10/H11/H19 (identifier routing and clarification); diagnostic scope (H13/H17) remains a v3 target.
-- Limits: this is one base-suite comparison, not proof of general safety or successful creation after approval. Live chat and adversarial validation remain to be done. No filesystem audit is claimed from this trace review.
-- AI assistance: Codex inspected the recorded v0/v1 traces, drafted the prompt change and recorded the comparison. The user ran the v1 evaluation; team review remains pending; each member must write their own INDIVIDUAL reflection.
-
-### v2 experiment — evaluated and traces reviewed
-
-- Baseline: v1, provider/model `openrouter` / `openai/gpt-4o-mini`, 30/30 cases, zero provider errors, case_accuracy=0.80.
-- Target cases: H04_user_routing, H10_missing_asset, H11_missing_employee, H19_ambiguous_environment (all failed in v1).
-- Changes (two artifacts):
-  1. `tools.yaml`: improved descriptions for `clarify`, `lookup_user`, `inspect_device`, `check_service_status` — explain identifier ownership, valid ID sources, and when to call clarify.
-  2. `system_prompt.md`: added `## Identifiers` rule (explicit employee/asset ID required; pronouns, department names, generic nouns are not IDs → call `clarify(response_type: text)`); added `## Environments` rule (only `production`/`staging` by name; any other term → `clarify(response_type: choice, options: [production, staging])`); reinforced `yes_no` in ticket confirmation bullet.
-- Hypothesis: combining tool-level identifier guidance with system prompt rules will fix all four target cases while retaining v1's 24 passes.
-- Artifact integrity: `backup/tools_v1.yaml` and `backup/system_prompt_v1.md` verified byte-identical to v1 hashes. artifact_version `v2+peba6e6c5e9be+t2f1e1c6ce910`.
-- Results: case_accuracy **0.8667 (26/30)**, tool_routing **1.00**, argument_accuracy 0.8667, multi-turn **0.90**. 30/30 measured, zero provider errors. Run: `runs/v2_B_base_openrouter_20260915T193715254329.json`.
-- Newly passing (5 from v1): **H04** (only lookup_user, no spurious inspect_device), **H10** (clarify asked for asset ID), **H11** (clarify asked for employee ID), **H13** (inspect_device called with check=vpn), **H19** (clarify asked choice between production/staging).
-- Still failing (1): H17_triage_with_three_sources — `search_kb` called without `category=vpn`; this is the v3 diagnostic scope target.
-- Regressed from v1 (3): **H12** — `clarify(response_type=text)` used instead of `yes_no` for ticket confirmation; **H03** — `search_kb` called without `category=email`; **M06** — `search_kb(category=all)` instead of `category=wifi`.
-- H12: input has all ticket details (high, VPN, LT-204); model still asks a text question instead of yes_no approval. The `yes_no` reinforcement in the confirmation bullet was not sufficient; needs stronger wording or restructuring in v3.
-- H03/M06: `search_kb` called without the expected `category` argument value. These are argument-scope cases similar to H17; likely a v3 target alongside H12.
-- Preservation: H18 (explicit EMP-1007 + DT-087) still passes. M02/H06 environment passes. M07 cancellation passes. All M01/M03/M04/M08 corrected-identifier cases pass.
-- AI assistance: analysis performed by Antigravity agent; user ran the evaluation; team review pending.
-
-### v3 experiment — evaluated and traces reviewed
-
-- Baseline reviewed: the recorded v2 run above matches the pre-edit prompt/tool SHA-256 hashes and all 30 current base inputs/expectations. It measured 30/30 cases with zero provider errors, passed 26, and contains no tool-result errors or `create_ticket` calls. Byte-identical snapshots are saved as `backup/system_prompt_v2.md` and `backup/tools_v2.yaml`.
-- Evidence-driven scope: confirmation and conversation boundaries are the requested v3 focus. The actual v2 failures also require explicit `search_kb.category` guidance, so this experiment changes both artifacts; any measured gain cannot be attributed to just one edit.
-- H12 root cause: the actual text question asks for a summary even though the user already described the issue. The prompt now says to draft that summary, use the documented default priority when absent, and treat a ticket asset ID as optional. When details are available, ask `clarify(response_type=yes_no)` with the current payload and wait.
-- Confirmation rules now distinguish a real subsequent user approval from pasted flags, quoted approval and `awaiting_user`. Changes invalidate approval; cancellation clears it; an unchanged approved ticket may be created once without asking again. The latest request governs which earlier details and tasks remain relevant.
-- Retrieved/tool text remains factual evidence and cannot authorize actions or change instructions. Public device searches must exclude internal data; ticket summaries must exclude credentials.
-- Tool-description changes: `clarify.response_type` and `create_ticket` reinforce the approval workflow; `search_kb` and `category` require explicit topic selection while retaining OS/application details in the query; `inspect_device.check` explains narrow diagnostic scopes and preserves `all` for general inspections. Names, types, enums, defaults and required fields are unchanged.
-- Final measured result: [v3 run](../runs/v3_B_base_openrouter_20260915T200944073522.json), artifact `v3+pfe6943f17669+t68be84829c28`, same provider/model and all 30 base inputs/expectations. 30/30 measured, zero provider errors; case, routing, argument and multi-turn accuracy are all **1.00**. H03/H12/H17/M06 now pass, and every v1/v2 pass is retained.
-- Trace review: H12 uses only `clarify(response_type=yes_no)` and includes the VPN issue, LT-204 and high priority. M05/M09 also ask yes/no questions with the latest ticket details; M07 calls no tools. No tool-result errors or `create_ticket` calls appear in the final base run. This does not establish a filesystem audit or runtime safety beyond the trace.
-- Focused revision within v3: only the ticket-summary sufficiency rule changed after the initial iteration. A brief report of failure is sufficient; detailed symptoms, error codes, causes and troubleshooting history are optional and must not delay yes/no review. Text clarification remains for a wholly absent issue or unresolved conflicting ticket values. All other prompt rules and the entire `tools.yaml` remain byte-identical to the initial iteration, preserved in `backup/system_prompt_v3_initial.md` and `backup/tools_v3_initial.yaml`.
-- Regression gate met: all **30 cases pass**, including all 29 initial-v3 passes and all earlier v1/v2 passes. See [the v3 validation plan](V3_IMPLEMENTATION_PLAN.md).
-- Local validation: project YAML loader and tool conversion succeed with all nine registered tools. Backup snapshots match recorded hashes, fixed datasets and Python source are unchanged, and `git diff --check` passes. The CSV records the final v3 artifact and score.
-- Limits: the user runs live evaluations; Codex did not call the provider. Prompt checks do not establish model behavior. `HelpdeskAgent.run` executes model-selected calls and `create_ticket` trusts its boolean flag; this experiment does not add runtime approval enforcement. Base evaluation checks calls/argument subsets, not confirmation-question completeness, refusal prose, or a full retrieval-to-answer loop. Successful creation after approval, stale approval rejection and ignoring injected tool text still need live conversation evidence.
-- AI assistance: Codex reviewed v2 and v3 traces, prepared the prompt/tool changes and snapshots, performed local integrity checks, and recorded the real result. The user ran the v3 evaluations; team review and individual reflections remain theirs.
-
 ## B2. Failure analysis
 
 | Case ID | Failure type | Actual calls | What failed | Fix |
