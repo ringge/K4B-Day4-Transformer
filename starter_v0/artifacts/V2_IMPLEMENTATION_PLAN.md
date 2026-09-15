@@ -58,18 +58,18 @@ Before making edits:
 
 1. Read `prompt_hash` and `tools_hash` from the v1 run.
 2. Compute SHA-256 hashes of the current `artifacts/system_prompt.md` and `artifacts/tools.yaml`. Confirm both match that run. If either differs, inspect the diff and preserve the user's newer work; do not mislabel it as v1.
-3. Save byte-for-byte backups as `artifacts/system_prompt_v1.md` and `artifacts/tools_v1.yaml`. If a backup already exists, verify its content instead of overwriting a different file.
-4. Preserve `artifacts/system_prompt_v0.md` and both recorded runs.
+3. Save byte-for-byte backups as `backup/system_prompt_v1.md` and `backup/tools_v1.yaml`. If a backup already exists, verify its content instead of overwriting a different file.
+4. Preserve `backup/system_prompt_v0.md` and both recorded runs.
 
-The tools hash was identical in v0 and v1, so `tools_v1.yaml` also preserves the declarations used for v0. Keep the active `system_prompt.md` byte-identical to v1 throughout this experiment.
+The tools hash was identical in v0 and v1, so `backup/tools_v1.yaml` also preserves the declarations used for v0. Keep the active `system_prompt.md` byte-identical to v1 throughout this experiment.
 
 ## 4. Files to adjust
 
 | File | Planned change |
 |---|---|
 | `artifacts/tools.yaml` | Improve descriptions for clarify, lookup_user, inspect_device and check_service_status, including the relevant parameter descriptions |
-| `artifacts/system_prompt_v1.md` | Add verified backup before editing |
-| `artifacts/tools_v1.yaml` | Add verified backup before editing |
+| `backup/system_prompt_v1.md` | Add verified backup before editing |
+| `backup/tools_v1.yaml` | Add verified backup before editing |
 | `artifacts/REPORT.md` | Add v2 hypothesis, target failures, changes and validation criteria; mark results pending |
 | `artifacts/version_log.csv` | Add the actual v2 record only after the user supplies a completed run |
 
@@ -136,7 +136,7 @@ Use the existing Python environment to perform read-only checks without provider
 
 - Load `tools.yaml` with the project's `load_tool_declarations` and convert it with `to_openai_tools`.
 - Verify all nine names are unique and match `TOOL_FUNCTIONS` in `tools/__init__.py`.
-- Compare the parsed declarations with `tools_v1.yaml`: after recursively removing `description` fields from both structures, they should be identical. This verifies that only descriptions changed.
+- Compare the parsed declarations with `backup/tools_v1.yaml`: after recursively removing `description` fields from both structures, they should be identical. This verifies that only descriptions changed.
 - Verify only the four intended tools have changed descriptions; specifically check `inspect_device.check` is unchanged.
 - Verify the active prompt still matches the v1 `prompt_hash`, both backups match their recorded hashes, and active `tools.yaml` now has a different hash.
 - Review `git diff` and run `git diff --check`; confirm no fixed evaluation case, run JSON or unrelated source file changed.
