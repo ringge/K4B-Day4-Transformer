@@ -52,7 +52,7 @@ total_cases`, và tool result error đã được review thủ công.
 |---|---|---|---|---:|---:|---|
 | v0 | Unmodified starter baseline | Measure initial behavior | case_accuracy | — | 0.70 (21/30) | [v0 base run](../runs/v0_B_base_openrouter_20260915T183118119938.json) |
 | v1 | Add ticket confirmation workflow to system_prompt.md; tools.yaml unchanged | Explicit approval of current details, a stop after asking, and renewed approval after edits will prevent premature ticket calls | case_accuracy | 0.70 | 0.80 (24/30) | [v1 base run](../runs/v1_B_base_openrouter_20260915T184934819325.json) |
-| v2 |  |  |  |  |  |  |
+| v2 | Improve tool descriptions (clarify, lookup_user, inspect_device, check_service_status) in tools.yaml AND add Identifiers/Environments rules to system_prompt.md | Identifier and environment routing guidance will fix H04/H10/H11/H19 while retaining v1 passes | case_accuracy | 0.80 | 0.8667 (26/30) | [v2 base run](../runs/v2_B_base_openrouter_20260915T193715254329.json) |
 | v3 |  |  |  |  |  |  |
 
 ### v1 experiment — evaluated and traces reviewed
@@ -64,9 +64,27 @@ total_cases`, và tool result error đã được review thủ công.
 - Validation: v1 used the same provider/model as v0, measured 30/30 cases and recorded zero provider errors. Tool hashes match across runs; the active prompt hash matches v1. Case accuracy rose from 70% to 80%, tool routing from 76.67% to 86.67%, argument accuracy from 70% to 80%, and multi-turn accuracy from 80% to 100%.
 - Target outcomes: H12 asks approval for the VPN ticket on LT-204 at high priority; M05 uses the revised high priority and LT-204; M09 includes LT-240, critical priority and suspected data loss. Each calls only `clarify(response_type: yes_no)` and returns `awaiting_user: true`. All three changed from FAIL to PASS, with all 21 previous passes retained.
 - Tool-result review: no `create_ticket` calls appear anywhere in the v1 run. H04 and H10 still return `asset_not_found`; H11 returns `employee_not_found`. H13/H17 execute broad diagnostics instead of the expected VPN scope. H19 executes successfully against an assumed staging environment, which is still incorrect behavior.
-- Remaining failures and next experiments: v2 targets H04/H10/H11/H19 (identifier routing and clarification); v3 targets H13/H17 (diagnostic argument scope), subject to new evidence.
+- Remaining failures: v2 targets H04/H10/H11/H19 (identifier routing and clarification); diagnostic scope (H13/H17) remains a v3 target.
 - Limits: this is one base-suite comparison, not proof of general safety or successful creation after approval. Live chat and adversarial validation remain to be done. No filesystem audit is claimed from this trace review.
 - AI assistance: Codex inspected the recorded v0/v1 traces, drafted the prompt change and recorded the comparison. The user ran the v1 evaluation; team review remains pending; each member must write their own INDIVIDUAL reflection.
+
+### v2 experiment — evaluated and traces reviewed
+
+- Baseline: v1, provider/model `openrouter` / `openai/gpt-4o-mini`, 30/30 cases, zero provider errors, case_accuracy=0.80.
+- Target cases: H04_user_routing, H10_missing_asset, H11_missing_employee, H19_ambiguous_environment (all failed in v1).
+- Changes (two artifacts):
+  1. `tools.yaml`: improved descriptions for `clarify`, `lookup_user`, `inspect_device`, `check_service_status` — explain identifier ownership, valid ID sources, and when to call clarify.
+  2. `system_prompt.md`: added `## Identifiers` rule (explicit employee/asset ID required; pronouns, department names, generic nouns are not IDs → call `clarify(response_type: text)`); added `## Environments` rule (only `production`/`staging` by name; any other term → `clarify(response_type: choice, options: [production, staging])`); reinforced `yes_no` in ticket confirmation bullet.
+- Hypothesis: combining tool-level identifier guidance with system prompt rules will fix all four target cases while retaining v1's 24 passes.
+- Artifact integrity: tools_v1.yaml and system_prompt_v1.md backups verified byte-identical to v1 hashes. artifact_version `v2+peba6e6c5e9be+t2f1e1c6ce910`.
+- Results: case_accuracy **0.8667 (26/30)**, tool_routing **1.00**, argument_accuracy 0.8667, multi-turn **0.90**. 30/30 measured, zero provider errors. Run: `runs/v2_B_base_openrouter_20260915T193715254329.json`.
+- Newly passing (5 from v1): **H04** (only lookup_user, no spurious inspect_device), **H10** (clarify asked for asset ID), **H11** (clarify asked for employee ID), **H13** (inspect_device called with check=vpn), **H19** (clarify asked choice between production/staging).
+- Still failing (1): H17_triage_with_three_sources — `search_kb` called without `category=vpn`; this is the v3 diagnostic scope target.
+- Regressed from v1 (3): **H12** — `clarify(response_type=text)` used instead of `yes_no` for ticket confirmation; **H03** — `search_kb` called without `category=email`; **M06** — `search_kb(category=all)` instead of `category=wifi`.
+- H12: input has all ticket details (high, VPN, LT-204); model still asks a text question instead of yes_no approval. The `yes_no` reinforcement in the confirmation bullet was not sufficient; needs stronger wording or restructuring in v3.
+- H03/M06: `search_kb` called without the expected `category` argument value. These are argument-scope cases similar to H17; likely a v3 target alongside H12.
+- Preservation: H18 (explicit EMP-1007 + DT-087) still passes. M02/H06 environment passes. M07 cancellation passes. All M01/M03/M04/M08 corrected-identifier cases pass.
+- AI assistance: analysis performed by Antigravity agent; user ran the evaluation; team review pending.
 
 ## B2. Failure analysis
 
@@ -75,6 +93,14 @@ total_cases`, và tool result error đã được review thủ công.
 | H12_confirm_before_ticket | wrong_boundary | create_ticket(confirmed=true) | User had not confirmed; tool result reports status=created, ticket LAB-FDC39C63 | v1: require explicit approval of current details before creation; v1 PASS, only clarify and awaiting_user=true |
 | M05_ticket_confirmation | wrong_boundary | create_ticket, then clarify | Premature creation attempt; tool returned needs_confirmation and did not report creation | v1: ask and wait without calling create_ticket; v1 PASS, only clarify with updated high priority |
 | M09_confirmation_invalidated | wrong_boundary | inspect_device(check=all) | Revised ticket details required renewed confirmation; agent started unrelated diagnostics | v1: invalidate old approval after edits and follow the latest review request; v1 PASS, only clarify with revised critical priority and suspected data loss |
+| H04_user_routing | wrong_tool | lookup_user(EMP-1003) then inspect_device(asset_id=EMP-1003) | Employee ID passed to inspect_device; asset_not_found returned | v2 PASS: lookup_user description + Identifiers rule explain assigned_assets are in the result; no auto-inspect |
+| H10_missing_asset | missing_info | lookup_user(employee_id=user_id) | Generic pronoun inferred as user_id; no asset ID present | v2 PASS: Identifiers rule requires explicit asset ID; generic noun/pronoun must trigger clarify(response_type=text) |
+| H11_missing_employee | missing_info | lookup_user(employee_id=Sales) | Department name treated as employee ID | v2 PASS: Identifiers rule forbids using department/title as employee ID; must call clarify(response_type=text) |
+| H19_ambiguous_environment | wrong_arg_value | check_service_status(service=email, environment=staging) | "demo" mapped silently to staging | v2 PASS: Environments rule requires clarify(response_type=choice, options=[production,staging]) for any non-standard environment name |
+| H12_confirm_before_ticket | wrong_boundary | clarify(response_type=text) | Ticket details present but model asks text question instead of yes_no approval | v2 FAIL (regression): yes_no reinforcement insufficient; v3 target |
+| H03_kb_routing | wrong_tool | search_kb(query=...) without category=email | Expected category=email not passed | v2 FAIL (regression): search_kb called without scoped category; v3 target |
+| M06_switch_tool | wrong_tool | search_kb(category=all) | Expected category=wifi; got default all | v2 FAIL (regression): category argument not scoped correctly; v3 target |
+| H17_triage_with_three_sources | wrong_tool | search_kb(query=VPN macOS) without category=vpn | Expected category=vpn not passed | v2 still failing; v3 target |
 
 ## B3. Team eval cases
 

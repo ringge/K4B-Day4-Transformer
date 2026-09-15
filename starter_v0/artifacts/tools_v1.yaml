@@ -8,16 +8,7 @@
 tools:
   # ---------------- Core tools ----------------
   - name: clarify
-    description: >-
-      Hỏi người dùng khi cần thêm thông tin hoặc cần giải quyết sự mơ hồ
-      trước khi thực hiện một công cụ phụ thuộc.
-      Dùng response_type=text để hỏi về một định danh còn thiếu (mã nhân viên,
-      mã tài sản, v.v.). Dùng response_type=choice để yêu cầu người dùng chọn
-      giữa các giá trị được hỗ trợ khi yêu cầu không rõ ràng; truyền đúng
-      các lựa chọn vào options. Dùng response_type=yes_no để xác nhận chi
-      tiết ticket trước khi tạo. Sau khi đặt câu hỏi, dừng lại và chờ phản
-      hồi; không đoán định danh hay giá trị rồi tiếp tục gọi công cụ khác
-      trong cùng lượt. Không cần hỏi khi đã có đủ thông tin hợp lệ.
+    description: "Gửi một câu hỏi cho người dùng."
     parameters:
       type: object
       properties:
@@ -37,17 +28,7 @@ tools:
       required: [query]
 
   - name: check_service_status
-    description: >-
-      Kiểm tra trạng thái một dịch vụ dùng chung (vpn, email, sso, wifi,
-      printing). Mặc định môi trường là production.
-      Có ba tình huống về môi trường:
-      1. Người dùng chỉ định rõ hoặc đã xác lập môi trường trước đó trong
-         hội thoại: dùng đúng giá trị đó, ưu tiên lần sửa mới nhất.
-      2. Người dùng không đề cập môi trường: dùng mặc định production.
-      3. Người dùng nhắc đến một môi trường không rõ ràng hoặc không nằm
-         trong danh sách hỗ trợ: hỏi họ muốn chọn môi trường nào bằng
-         clarify(response_type=choice, options=[production, staging]); không
-         tự ánh xạ sang giá trị khác hoặc áp mặc định đè lên sự mơ hồ.
+    description: "Kiểm tra trạng thái một dịch vụ."
     parameters:
       type: object
       properties:
@@ -56,17 +37,7 @@ tools:
       required: [service]
 
   - name: inspect_device
-    description: >-
-      Kiểm tra thông tin và chẩn đoán một tài sản công ty đã được xác định.
-      Công cụ này yêu cầu mã tài sản (asset_id) thực sự — không phải mã nhân
-      viên, tên hãng/model, hay danh từ thiết bị chung như "laptop" hay
-      "máy tính". Chỉ dùng mã tài sản lấy từ hội thoại hoặc từ kết quả
-      lookup_user đáng tin; không tự tạo hay thay bằng mã mẫu.
-      Khi mã tài sản còn thiếu hoặc mơ hồ, hỏi người dùng bằng
-      clarify(response_type=text) trước khi chẩn đoán.
-      Lưu ý: yêu cầu liệt kê thiết bị được giao cho nhân viên đã có câu trả
-      lời trong kết quả lookup_user (trường assigned_assets); đó là yêu cầu
-      tra cứu, không phải yêu cầu chẩn đoán tự động.
+    description: "Kiểm tra thông tin và chẩn đoán thiết bị."
     parameters:
       type: object
       properties:
@@ -75,16 +46,7 @@ tools:
       required: [asset_id]
 
   - name: lookup_user
-    description: >-
-      Tra cứu hồ sơ nhân viên và tài khoản theo mã nhân viên, trả về thông
-      tin danh bạ và danh sách mã tài sản được giao (assigned_assets).
-      Nếu người dùng chỉ muốn biết thiết bị được giao cho một nhân viên,
-      kết quả của công cụ này đã đủ; không cần gọi thêm inspect_device chỉ
-      vì có danh sách tài sản.
-      Mã nhân viên phải đến từ hội thoại rõ ràng hoặc từ kết quả nội bộ
-      đáng tin. Không chuyển đổi tên người, phòng ban, chức danh hay mô tả
-      thiết bị thành mã nhân viên. Khi mã nhân viên còn thiếu hoặc mơ hồ,
-      hỏi bằng clarify(response_type=text) trước khi tra cứu.
+    description: "Tra cứu người dùng trong danh bạ hỗ trợ."
     parameters:
       type: object
       properties:
