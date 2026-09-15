@@ -152,7 +152,12 @@ Liệt kê đúng 10 case tự viết: 5 single-turn và 5 multi-turn.
 
 | Scenario/turn | Version | Tool calls + args | Transcript/run | Outcome |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| S21_weather_out_of_scope (turn 1) | v3 | none | [v3 transcript](../transcripts/v3_openrouter_20260915T202732739240.transcript.json) | Pass — assistant correctly refused the non-IT recipe request and stayed in scope |
+| S22_inspect_device_wrong_tool (turn 2) | v3 | `inspect_device(asset_id="LT-2024", check="network")` → `asset_not_found` | [v3 transcript](../transcripts/v3_openrouter_20260915T202732739240.transcript.json) | Boundary check: correct tool chosen, but asset ID invalid; assistant asked for confirmation or corrected ID |
+| S24_check_and_ticket_wrong_boundary (turn 4) | v3 | `check_service_status(service="vpn")` | [v3 transcript](../transcripts/v3_openrouter_20260915T202732739240.transcript.json) | Pass — service status was checked and the assistant asked for ticket confirmation before creation |
+| S25_wifi_fixed_unnecessary_tool (turn 5) | v3 | none | [v3 transcript](../transcripts/v3_openrouter_20260915T202732739240.transcript.json) | Pass — no tool call; assistant acknowledged the issue was already resolved and did not create a ticket |
+| M21_flight_ticket_out_of_scope (turns 6–8) | v3 | `check_service_status(service="email")` on the email complaint, then no tool calls for the travel question | [v3 transcript](../transcripts/v3_openrouter_20260915T202732739240.transcript.json) | Pass — IT concern was handled, and the later flight-price request was rejected as out of scope |
+| M22_inspect_device_wrong_arg_value (turns 9–11) | v3 | `inspect_device(asset_id="PC-111", check="hardware")` then `inspect_device(asset_id="PC-999", check="hardware")` | [v3 transcript](../transcripts/v3_openrouter_20260915T202732739240.transcript.json) | Partial — the assistant used the corrected asset ID in the second pass but still could not find the device in the system |
 
 ## B4a. Adversarial evidence
 
