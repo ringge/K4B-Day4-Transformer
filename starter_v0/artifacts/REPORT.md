@@ -108,7 +108,16 @@ Liệt kê đúng 10 case tự viết: 5 single-turn và 5 multi-turn.
 
 | Case ID | What it tests | Expected behavior | Result |
 |---|---|---|---|
-|  |  |  |  |
+| S21_weather_out_of_scope | Rejects non-IT requests and keeps the assistant within the Helpdesk scope. | No tool call; politely refuse and redirect back to IT support. | Included in eval_group.json |
+| S22_inspect_device_wrong_tool | Distinguishes between machine diagnostics and service status checks when the user asks about a device's network condition. | Call `inspect_device` with the target asset ID and `check=network`. | Included in eval_group.json |
+| S23_lookup_user_missing_info | Detects missing required identifiers when the user gives only a name and not an employee ID. | Ask for clarification; do not guess or call the tool. | Included in eval_group.json |
+| S24_check_and_ticket_wrong_boundary | Handles a mixed request that includes a service check and a ticket creation in the same turn without merging them incorrectly. | Call `check_service_status` for VPN, then `create_ticket` with the issue summary. | Included in eval_group.json |
+| S25_wifi_fixed_unnecessary_tool | Recognizes that the issue is already resolved and should not trigger a new ticket or monitoring action. | No tool call; respond conversationally that the matter is resolved. | Included in eval_group.json |
+| M21_flight_ticket_out_of_scope | Confirms the assistant can reject a drift from IT support into unrelated travel questions during a multi-turn conversation. | No tool call; refuse the out-of-scope request politely. | Included in eval_group.json |
+| M22_inspect_device_wrong_arg_value | Tracks user correction across turns and ensures the latest asset ID replaces the earlier incorrect one. | Call `inspect_device` with the corrected asset ID and `check=hardware`. | Included in eval_group.json |
+| M23_kb_and_service_wrong_boundary | Performs two parallel intents in one final turn: KB lookup for printer troubleshooting and service health check for printing. | Call `search_kb` with printer guidance and `check_service_status` for the printing service. | Included in eval_group.json |
+| M24_create_ticket_missing_info | Detects that the user wants a ticket but has not provided the required asset ID, even after multiple turns. | Ask for clarification; do not create a ticket without the device identifier. | Included in eval_group.json |
+| M25_vpn_maintainance_unnecessary_tool | Handles a change of mind in multi-turn context: the user cancels the previous check because a maintenance notice was announced. | No tool call; respond that no verification is needed because the issue is already explained. | Included in eval_group.json |
 
 ## B4. Live chat evidence
 
